@@ -1,0 +1,25 @@
+// components/SimulateForm.tsx
+'use client';
+
+import { useGasStore } from '@/store/gasStore';
+import { useState } from 'react';
+
+export const SimulateForm = () => {
+  const { baseFee, priorityFee } = useGasStore((s) => s.chains.ethereum);
+  const usd = useGasStore((s) => s.usdPrice);
+  const [eth, setEth] = useState(0.5);
+
+  const cost = (baseFee + priorityFee) * 21000 * usd;
+
+  return (
+    <div>
+      <input
+        type="number"
+        value={eth}
+        onChange={(e) => setEth(Number(e.target.value))}
+        step="0.01"
+      />
+      <p>Gas Cost (USD): ${cost.toFixed(2)}</p>
+    </div>
+  );
+};
