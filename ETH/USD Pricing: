@@ -1,0 +1,28 @@
+// utils/fetchEthUsd.ts
+import { ethers } from 'ethers';
+import { useGasStore } from '@/store/gasStore';
+
+const UNISWAP_POOL = '0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640';
+
+export const fetchEthUsd = async () => {
+  const provider = new ethers.providers.JsonRpcProvider('https://eth.llamarpc.com');
+
+  const iface = new ethers.utils.Interface([
+    'event Swap(address indexed sender,address indexed recipient,int256 amount0,int256 amount1,uint160 sqrtPriceX96,uint128 liquidity,int24 tick)',
+  ]);
+
+  const latest = await provider.getBlockNumber();
+  const logs = await provider.getLogs({
+    address: UNISWAP_POOL,
+    fromBlock: latest - 20,
+    toBlock: latest,
+    topics: [iface.getEventTopic('Swap')],
+  });
+
+  if (logs.length === 0) return;
+
+  const parsed = iface.parseLog(logs[logs.length - 1]);
+  const sqrtPriceX96 = parsed.args.sqrtPriceX96;
+  const price = (sqrtPriceX96 ** 2n * 10n ** 12n) / 2n ** 192n;
+  return Number(price) / 1e6;
+};
