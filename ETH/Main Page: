@@ -1,0 +1,32 @@
+// app/page.tsx
+'use client';
+
+import { useEffect } from 'react';
+import { useLiveGas } from '@/hooks/useLiveGas';
+import { fetchEthUsd } from '@/utils/fetchEthUsd';
+import { useGasStore } from '@/store/gasStore';
+import { GasChart } from '@/components/GasChart';
+import { SimulateForm } from '@/components/SimulateForm';
+
+export default function Home() {
+  useLiveGas();
+  const setUsd = useGasStore((s) => s.setUsdPrice);
+
+  useEffect(() => {
+    const fetchPrice = async () => {
+      const price = await fetchEthUsd();
+      if (price) setUsd(price);
+    };
+    fetchPrice();
+    const interval = setInterval(fetchPrice, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <main>
+      <h1>ETH Gas Dashboard</h1>
+      <GasChart />
+      <SimulateForm />
+    </main>
+  );
+}
