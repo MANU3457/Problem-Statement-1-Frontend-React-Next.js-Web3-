@@ -1,0 +1,27 @@
+// components/GasChart.tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { createChart } from 'lightweight-charts';
+import { useGasStore } from '@/store/gasStore';
+
+export const GasChart = () => {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const history = useGasStore((s) => s.chains.ethereum.history);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    const chart = createChart(chartRef.current, {
+      width: 600,
+      height: 300,
+    });
+
+    const candleSeries = chart.addCandlestickSeries();
+    candleSeries.setData(history);
+
+    return () => chart.remove();
+  }, [history]);
+
+  return <div ref={chartRef} />;
+};
