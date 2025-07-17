@@ -1,0 +1,59 @@
+// store/gasStore.ts
+import { create } from 'zustand';
+
+interface GasData {
+  baseFee: number;
+  priorityFee: number;
+  history: { time: number; open: number; high: number; low: number; close: number }[];
+}
+
+type Mode = 'live' | 'simulation';
+
+interface Store {
+  mode: Mode;
+  usdPrice: number;
+  chains: {
+    ethereum: GasData;
+    polygon: GasData;
+    arbitrum: GasData;
+  };
+  setMode: (mode: Mode) => void;
+  setUsdPrice: (price: number) => void;
+  updateGas: (chain: keyof Store['chains'], base: number, priority: number) => void;
+}
+
+export const useGasStore = create<Store>((set) => ({
+  mode: 'live',
+  usdPrice: 0,
+  chains: {
+    ethereum: { baseFee: 0, priorityFee: 0, history: [] },
+    polygon: { baseFee: 0, priorityFee: 0, history: [] },
+    arbitrum: { baseFee: 0, priorityFee: 0, history: [] },
+  },
+  setMode: (mode) => set({ mode }),
+  setUsdPrice: (price) => set({ usdPrice: price }),
+  updateGas: (chain, base, priority) =>
+    set((state) => {
+      const now = Math.floor(Date.now() / 1000);
+      const prev = state.chains[chain].history.slice(-1)[0];
+      const close = base + priority;
+
+      let updatedHistory = [...state.chains[chain].history];
+
+      if (!prev || now - prev.time >= 900) {
+        updatedHistory.push({ time: now, open: close, high: close, low: close, close });
+      } else {
+        const last = updatedHistory[updatedHistory.length - 1];
+        last.high = Math.max(last.high, close);
+        last.low = Math.min(last.low, close);
+        last.close = close;
+      }
+
+      return {
+        chains: {
+          ...state.chains,
+          [chain]: { baseFee: base, priorityFee: priority, history: updatedHistory },
+        },
+      };
+    }),
+}));
