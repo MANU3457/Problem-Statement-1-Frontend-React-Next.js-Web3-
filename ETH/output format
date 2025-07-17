@@ -1,0 +1,25 @@
+1. Set Up Your Project:
+-->npx create-next-app@latest gas-tracker --typescript
+-->cd gas-tracker
+Choose the following when prompted:
+
+✔ TypeScript: Yes
+
+✔ App Router: Yes
+
+✔ Tailwind: Optional (not required)
+
+✔ ESLint: Yes (optional)
+
+
+2. Run the App
+-->npm run dev
+Open your browser and go to: http://localhost:3000
+
+You should see:
+
+A candlestick chart of Ethereum gas fees (live)
+
+Input field to simulate a transaction
+
+USD cost calculation
